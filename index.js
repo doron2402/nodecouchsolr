@@ -15,7 +15,19 @@ var internals = {};
 internals.users = {
     john: {
         user: 'john'
-    }
+    },
+    getById: function (request, reply) {
+        reply('Success');
+    },
+    create: function (request, reply) {
+        reply('Success');
+    },
+    updateById: function (request, reply) {
+        reply('Success');
+    },
+    deleteById: function (request, reply) {
+        reply('Success');
+    },
 };
 
 
@@ -75,7 +87,11 @@ internals.main = function () {
         server.route([
             { method: 'GET', path: '/basic', config: { handler: internals.handler, auth: { strategies: ['basic'] } } },
             { method: 'GET', path: '/hawk', config: { handler: internals.handler, auth: { strategies: ['hawk'] } } },
-            { method: 'GET', path: '/multiple', config: { handler: internals.handler, auth: { strategies: ['basic', 'hawk'] } } }
+            { method: 'GET', path: '/multiple', config: { handler: internals.handler, auth: { strategies: ['basic', 'hawk'] } } },
+            { method: 'GET', path: 'api/users/{id}', config: { handler: internals.users.getById, auth: { strategies: ['hawk'] }}},
+            { method: 'POST', path: 'api/users', config: { handler: internals.users.create, auth: false }},
+            { method: 'PUT', path: 'api/users/{id}', config: { handler: internals.users.updateById, { strategies: ['hawk'] }}},
+            { method: 'DELETE', path: 'api/users/{id}', config: { handler: internals.users.deleteById, { strategies: ['hawk'] }}},
         ]);
 
         server.start(function () {
