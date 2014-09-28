@@ -1,0 +1,33 @@
+{
+  "name": "nodecouchsolr",
+  "version": "0.0.0",
+  "description": "node.js application/api using couchdb and solr",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doron2402/nodecouchsolr.git"
+  },
+  "keywords": [
+    "node.js",
+    "couchdb",
+    "hapi",
+    "solr"
+  ],
+  "author": "Doron Segal",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/doron2402/nodecouchsolr/issues"
+  },
+  "homepage": "https://github.com/doron2402/nodecouchsolr",
+  "dependencies": {
+    "hapi-auth-basic": "~1.1.1",
+    "hapi-auth-hawk": "~1.1.1",
+    "hawk": "~2.3.0",
+    "hapi": "~6.9.0",
+    "bcrypt": "~0.8.0"
+  }
+}
