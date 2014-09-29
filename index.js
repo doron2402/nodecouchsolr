@@ -1,14 +1,22 @@
 // Note: Make sure to 'npm install bcrypt hawk hapi-auth-basic hapi-auth-hawk' first
 
 // Load modules
-
+var Settings = {
+    couchdb: {
+        database: 'app'
+    }
+}
 var Hawk = require('hawk');
 var Bcrypt = require('bcrypt');
 var Hapi = require('hapi');
+var cradle = require('cradle');
+var db = new(cradle.Connection)().database(Settings.couchdb.database);
+var shortId = require('shortid');
+
+
 
 
 // Declare internals
-
 var internals = {};
 
 
@@ -17,16 +25,54 @@ internals.users = {
         user: 'john'
     },
     getById: function (request, reply) {
-        reply('Success');
+        console.log(request.params);
+        db.get('user:' + request.params.id, function (err, doc) {
+            if (err) {
+                return reply({err: err});
+            }
+            return reply({code: 'OK', body: {doc: doc}});
+        });
     },
     create: function (request, reply) {
-        reply('Success');
+        var documentId = 'user:' + shortId.generate();
+        db.save(documentId, {
+          name: 'light',
+          username: 'Luke Skywalker',
+          email: 'email@email.com',
+        }, function (err, res) {
+          if (err) {
+                return reply({err: err});
+          } else {
+                return reply({code: 'OK', body: res});
+          }
+        });
     },
     updateById: function (request, reply) {
-        reply('Success');
+        db.merge('user:' + request.params.id, request.payload, function (err, res) {
+            if (err) {
+                return reply({err: err});
+          } else {
+                return reply({code: 'OK', body: res});
+          }
+        });
     },
     deleteById: function (request, reply) {
-        reply('Success');
+        db.merge('user:' + request.params.id, {active: false}, function (err, res) {
+            if (err) {
+                return reply({err: err});
+          } else {
+                return reply({code: 'OK', body: res});
+          }
+        });
+    },
+    activate: function (request, reply) {
+        db.merge('user:' + request.params.id, {active: true}, function (err, res) {
+            if (err) {
+                return reply({err: err});
+          } else {
+                return reply({code: 'OK', body: res});
+          }
+        });
     },
 };
 
@@ -46,6 +92,9 @@ internals.credentials = {
 
 
 internals.validate = function (username, password, callback) {
+    // Get Couchbase doc by username from Solr
+    //
+    // Compare password
 
     Bcrypt.compare(password, internals.passwords[username], function (err, isValid) {
 
@@ -88,10 +137,12 @@ internals.main = function () {
             { method: 'GET', path: '/basic', config: { handler: internals.handler, auth: { strategies: ['basic'] } } },
             { method: 'GET', path: '/hawk', config: { handler: internals.handler, auth: { strategies: ['hawk'] } } },
             { method: 'GET', path: '/multiple', config: { handler: internals.handler, auth: { strategies: ['basic', 'hawk'] } } },
-            { method: 'GET', path: 'api/users/{id}', config: { handler: internals.users.getById, auth: { strategies: ['hawk'] }}},
-            { method: 'POST', path: 'api/users', config: { handler: internals.users.create, auth: false }},
-            { method: 'PUT', path: 'api/users/{id}', config: { handler: internals.users.updateById, { strategies: ['hawk'] }}},
-            { method: 'DELETE', path: 'api/users/{id}', config: { handler: internals.users.deleteById, { strategies: ['hawk'] }}},
+            // API - Users
+            { method: 'GET', path: '/api/users/{id}', config: { handler: internals.users.getById, auth: false } },
+            { method: 'POST', path: '/api/users', config: { handler: internals.users.create, auth: false } },
+            { method: 'POST', path: '/api/users/{id}/activate', config: { handler: internals.users.activate, auth: false } },
+            { method: 'PUT', path: '/api/users/{id}', config: { handler: internals.users.updateById, auth: false } },
+            { method: 'DELETE', path: '/api/users/{id}', config: { handler: internals.users.deleteById, auth: false } },
         ]);
 
         server.start(function () {
